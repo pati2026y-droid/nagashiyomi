@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>流し読み</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f7f7f7;padding:12px;margin:0}
+textarea{width:100%;height:130px;padding:10px;font-size:16px}
+#output{margin-top:14px;height:52vh;min-height:280px;overflow:auto;border:1px solid #ccc;background:#fff;padding:14px;white-space:pre-wrap;font-size:18px;line-height:1.8}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button,input{font-size:16px;padding:10px}
+.status{margin-top:8px;color:#666}
+</style>
+</head>
+<body>
+<h2>流し読み</h2>
+
+<textarea id="input" placeholder="ここに文章を貼り付けてください"></textarea>
+
+<div style="margin-top:10px">
+表示速度：
+<input id="speed" type="number" value="50" min="1" style="width:80px"> ms/文字
+</div>
+
+<div class="buttons">
+<button id="start">開始</button>
+<button id="pause">一時停止</button>
+<button id="resume">再開</button>
+<button id="reset">リセット</button>
+</div>
+
+<div id="status" class="status">未開始</div>
+
+<div id="output"></div>
+
+<script>
+let timer=null,index=0,text="",paused=false;
+const input=document.getElementById("input");
+const output=document.getElementById("output");
+const status=document.getElementById("status");
+const speed=document.getElementById("speed");
+
+document.getElementById("start").onclick=()=>{
+ clearTimeout(timer);
+ text=input.value;
+ output.textContent="";
+ output.scrollTop=0;
+ index=0;
+ paused=false;
+ if(!text){status.textContent="文章を貼り付けてください";return;}
+ status.textContent="表示中";
+ next();
+};
+
+function next(){
+ if(paused)return;
+ if(index<text.length){
+   output.textContent+=text.charAt(index++);
+   output.scrollTop=output.scrollHeight;
+   status.textContent=`表示中：${index}/${text.length}`;
+   timer=setTimeout(next,Math.max(1,Number(speed.value)||50));
+ }else{
+   status.textContent="読み終わりました";
+ }
+}
+
+document.getElementById("pause").onclick=()=>{
+ paused=true;
+ clearTimeout(timer);
+ status.textContent=`一時停止中：${index}/${text.length}`;
+};
+
+document.getElementById("resume").onclick=()=>{
+ if(index<text.length){
+   paused=false;
+   status.textContent="表示中";
+   next();
+ }
+};
+
+document.getElementById("reset").onclick=()=>{
+ clearTimeout(timer);
+ timer=null;
+ index=0;
+ text="";
+ paused=false;
+ input.value="";
+ output.textContent="";
+ status.textContent="未開始";
+ input.focus();
+};
+</script>
+</body>
+</html>
